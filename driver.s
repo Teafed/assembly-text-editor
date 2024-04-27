@@ -174,14 +174,9 @@ m_2a:
 	mov		x1, #1					//<2a> -> 1
 	b		menu_selection_exit
 m_2b:
-	// Add string. from File. Static file named input.txt
 	mov		x1, #2					//<2b> -> 2
 	b		menu_selection_exit
 m_3:
-	// Delete string. Given an index #, delete the entire string and de-allocate memory
-	// (Including the node).
-
-
 	mov		x1, #3					//<3> -> 3
 
 	b		menu_selection_exit
@@ -207,5 +202,20 @@ menu_selection_exit:
     ldr     x19, [sp], #16          //pop x19
 
 	ret		lr						//return
+
+
+add_String_KeyBoard:
+	// Add string into linked list from the keyboard
+
+add_String_File:
+	//	Add string into linked list from an input file. Potentially input.txt or whatever the
+	// User had it as
+	
+delete_String:
+	// Given an index #, delete the entire string and de-allocate/De-allocate as needed
+
+edit_String:
+	// Given an index, replace old string with new string. Allocate/De-allocate as needed
+
 
 .end
