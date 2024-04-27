@@ -174,10 +174,16 @@ m_2a:
 	mov		x1, #1					//<2a> -> 1
 	b		menu_selection_exit
 m_2b:
+	// Add string. from File. Static file named input.txt
 	mov		x1, #2					//<2b> -> 2
 	b		menu_selection_exit
 m_3:
+	// Delete string. Given an index #, delete the entire string and de-allocate memory
+	// (Including the node).
+
+
 	mov		x1, #3					//<3> -> 3
+
 	b		menu_selection_exit
 m_4:
 	mov		x1, #4					//<4> -> 4
