@@ -4,6 +4,8 @@
 			.equ MAX, 20
 	.data
 
+headPtr:	.quad 0					//head pointer
+tailPtr:	.quad 0					//tail pointer
 dbBuffer:	.quad 0					//to hold temp nums
 szBuffer:	.skip BUFFER			//to hold temp strings
 chLF:		.byte 0xa				//new line
@@ -25,9 +27,32 @@ szMenu5:	.asciz "<5> String search. Regardless of case, return all strings that 
 szMenu6:	.asciz "<6> Save file (output.txt)\n\n"
 szMenu7:	.asciz "<7> Quit\n\n\n>  "
 
+
+str1:		.asciz "this is the first string\n"
+str2:		.asciz "and this is the second\n"
+str3:		.asciz "this is the third!\n"
 	.text
 
 _start:
+
+//add temp strings
+	ldr		x0, =str1
+	bl		String_copy
+	ldr		x1, =tailPtr
+	ldr		x2, =headPtr
+	bl		node_insert
+
+	ldr		x0, =str2
+	bl		String_copy
+	ldr		x1, =tailPtr
+	ldr		x2, =headPtr
+	bl		node_insert
+
+	ldr		x0, =str3
+	bl		String_copy
+	ldr		x1, =tailPtr
+	ldr		x2, =headPtr
+	bl		node_insert
 
 open_menu:
 
@@ -36,14 +61,17 @@ open_menu:
 	bl		print_menu				//print header info and menu
 	bl		menu_selection			//returns the user's input to x0
 
-	//test
+	cmp		x0, #0					//compare x0 to 0
+	beq		view_strings			//if equal, print strings
 
-	ldr		x1, =szBuffer
-	bl		int64asc
-	ldr		x0, =szBuffer
-	bl		putstring
+	cmp		x0, #7					//compare x0 to 7
+	beq		exit_sequence			//if equal, exit
 
 exit_sequence:
+
+	//free memory before exiting
+	ldr		x0, =headPtr			//load address of headPtr into x0
+	bl		node_free				//free the nodes
 
 	ldr		x0, =chLF				//load address of chLF into x0
 	bl		putch					//print new line
@@ -201,5 +229,13 @@ menu_selection_exit:
     ldr     x19, [sp], #16          //pop x19
 
 	ret		lr						//return
+
+view_strings:
+
+/* view_strings - prints all nodes */
+
+	ldr		x0, =headPtr			//load headPtr into x0
+	bl		node_print				//branch to node_print
+	b		open_menu				//return to menu
 
 .end
