@@ -31,6 +31,10 @@ szMenu7:	.asciz "<7> Quit\n\n\n>  "
 str1:		.asciz "this is the first string\n"
 str2:		.asciz "and this is the second\n"
 str3:		.asciz "this is the third!\n"
+
+
+strIn:	.asciz "Enter an index: "				// User is prompted for a string's index to delete
+strInput:.asciz "Input: "							// User is prompted for new string to add to list
 	.text
 
 _start:
@@ -63,6 +67,15 @@ open_menu:
 
 	cmp		x0, #0					//compare x0 to 0
 	beq		view_strings			//if equal, print strings
+
+	cmp		x0,#1						// Compare x0 to 1
+	beq		add_String_Keyboard	// Branch to add_String from keyboard
+
+	cmp		x0,#2						// Compare x0 to 1
+	beq		add_String_File		//	Branch to add_String from Folder
+
+	cmp		x0,#3						// Compare x0 to 3, if equal:
+	beq		delete_String			// Branch to delete_string
 
 	cmp		x0, #7					//compare x0 to 7
 	beq		exit_sequence			//if equal, exit
@@ -231,22 +244,32 @@ menu_selection_exit:
 
 	ret		lr						//return
 
-<<<<<<< HEAD
+//<<<<<<< HEAD
 
-add_String_KeyBoard:
+add_String_Keyboard:
 	// Add string into linked list from the keyboard
+	//
+	ldr		x0,=strInput		// Load into x0 address of input string
+	bl			putstring			// Print string to terminal
 
+	b			open_menu			// Return to menu
 add_String_File:
 	//	Add string into linked list from an input file. Potentially input.txt or whatever the
 	// User had it as
-	
+	b			open_menu			// Return to menu
 delete_String:
 	// Given an index #, delete the entire string and de-allocate/De-allocate as needed
 
+	// Prompt the user for a string index
+	ldr		x0,=strIn			// Load address of index message
+	bl			putstring			// Print string to terminal
+
+	b			open_menu			// Return to menu
+
 edit_String:
 	// Given an index, replace old string with new string. Allocate/De-allocate as needed
-
-=======
+	b			open_menu			// Return to menu
+//=======
 view_strings:
 
 /* view_strings - prints all nodes */
@@ -254,6 +277,6 @@ view_strings:
 	ldr		x0, =headPtr			//load headPtr into x0
 	bl		node_print				//branch to node_print
 	b		open_menu				//return to menu
->>>>>>> c0253c309ccdd54672d1f47005eed24e02c5709c
+//>>>>>>> c0253c309ccdd54672d1f47005eed24e02c5709c
 
 .end
