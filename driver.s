@@ -1,14 +1,19 @@
 	.global _start
-
+			.equ NODE_SIZE,16
 			.equ BUFFER, 21
 			.equ MAX, 20
+			.equ MAX2,30
+			.equ BUFFER2,31
 	.data
 
 headPtr:	.quad 0					//head pointer
 tailPtr:	.quad 0					//tail pointer
+newNodePtr:	.quad 0					// Holds new node ptr
+currentPtr:	.quad 0					// Holds current ptr
 dbBuffer:	.quad 0					//to hold temp nums
 szBuffer:	.skip BUFFER			//to hold temp strings
-chLF:		.byte 0xa				//new line
+szBuffer2:	.skip BUFFER2			// Testing something right quick
+chLF:			.byte 0x0a				//new line
 
 //header
 szHeader1:	.asciz "\n             RASM-4 TEXT EDITOR\n"
@@ -68,14 +73,19 @@ open_menu:
 	cmp		x0, #0					//compare x0 to 0
 	beq		view_strings			//if equal, print strings
 
+	// If x0 equals 1, then go to addSK
+	// If not contnue through the loop
 	cmp		x0,#1						// Compare x0 to 1
 	beq		add_String_Keyboard	// Branch to add_String from keyboard
 
-	cmp		x0,#2						// Compare x0 to 1
-	beq		add_String_File		//	Branch to add_String from Folder
 
-	cmp		x0,#3						// Compare x0 to 3, if equal:
-	beq		delete_String			// Branch to delete_string
+//	cmp		x0,#2						// Compare x0 to 1
+//	beq		add_String_File		//	Branch to add_String from Folder
+
+//	cmp		x0,#3						// Compare x0 to 3, if equal:
+//	beq		delete_String			// Branch to delete_string
+
+
 
 	cmp		x0, #7					//compare x0 to 7
 	beq		exit_sequence			//if equal, exit
@@ -245,12 +255,34 @@ menu_selection_exit:
 	ret		lr						//return
 
 //<<<<<<< HEAD
+//=======
+view_strings:
+
+/* view_strings - prints all nodes */
+
+	ldr		x0, =headPtr			//load headPtr into x0
+	bl		node_print				//branch to node_print
+	b		open_menu				//return to menu
+//>>>>>>> c0253c309ccdd54672d1f47005eed24e02c5709c
 
 add_String_Keyboard:
-	// Add string into linked list from the keyboard
-	//
-	ldr		x0,=strInput		// Load into x0 address of input string
-	bl			putstring			// Print string to terminal
+	// Prompt the user for an input string
+	ldr		x0,=strInput		// Load x0 with the address
+	bl			putstring			// Print prompt string to terminal
+	// Before we call copy we get szBuffer to have the string to add
+	ldr		x0,=szBuffer2		// Load x0 with szBuffer address
+	mov		x1,MAX2				// Move x1 max amount of chars
+
+	bl			getstring			// Calling get string to grab input
+
+	// Store values into memory(?)
+	ldr		x0,=szBuffer2		// Load into 0 the address of szBuffer
+	bl			String_copy			// Branch and link to String_copy
+
+	// Parameters for node_insert
+	ldr		x1,=tailPtr			// Load tail pointer to x1
+	ldr		x2,=headPtr			// Load head pointer to x2
+	bl			node_insert			// Branch and link to node insert
 
 	b			open_menu			// Return to menu
 add_String_File:
@@ -269,14 +301,5 @@ delete_String:
 edit_String:
 	// Given an index, replace old string with new string. Allocate/De-allocate as needed
 	b			open_menu			// Return to menu
-//=======
-view_strings:
-
-/* view_strings - prints all nodes */
-
-	ldr		x0, =headPtr			//load headPtr into x0
-	bl		node_print				//branch to node_print
-	b		open_menu				//return to menu
-//>>>>>>> c0253c309ccdd54672d1f47005eed24e02c5709c
 
 .end
