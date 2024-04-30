@@ -9,7 +9,7 @@
 node_free:
 
 	str		x30, [sp, #-16]!		//push lr
-	ldr		x0, [x0]				//load value of headPtr into x0
+	ldr		x0, [x0]					//load value of headPtr into x0
 
 node_free_loop:
 
@@ -17,21 +17,22 @@ node_free_loop:
 	beq		node_free_exit			//if no more nodes exist, exit loop
 
 	//free the malloc'd string
-	str		x0, [sp, #-16]!			//push x0 momentarily
-	ldr		x0, [x0]				//load value of pointer into x0
-	bl		free					//free the memory!
+	str		x0, [sp, #-16]!		//push x0 momentarily
+	ldr		x0, [x0]					//load value of pointer into x0
+	bl			free						//free the memory!
 	ldr		x0, [sp], #16			//pop x0 back into existence
 
+	//go to next string
 	ldr		x19, [x0, #8]			//load x0 into x19 and move 8 bytes
 	str		x19, [sp, #-16]!		//push x19 momentarily as well
-	bl		free					//free the memory!
+	bl			free						//free the memory!
 	ldr		x0, [sp], #16			//pop x19 into x0
 
-	b		node_free_loop			//loop once again
+	b			node_free_loop			//loop once again
 
 node_free_exit:
 
 	ldr		x30, [sp], #16			//pop lr
-	ret		lr						//return. finally
+	ret		lr							//return. finally
 
 .end
