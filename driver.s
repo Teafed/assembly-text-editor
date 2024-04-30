@@ -8,7 +8,9 @@ headPtr:	.quad 0					//head pointer
 tailPtr:	.quad 0					//tail pointer
 dbBuffer:	.quad 0					//to hold temp nums
 szBuffer:	.skip BUFFER			//to hold temp strings
-chLF:		.byte 0xa				//new line
+
+chLF:		.byte 0x0a				//new line
+szClear:	.asciz "\033[2J"		//ANSI escape code for clearing the screen
 
 //header
 szHeader1:	.asciz "\n             RASM-4 TEXT EDITOR\n"
@@ -27,10 +29,14 @@ szMenu5:	.asciz "<5> String search. Regardless of case, return all strings that 
 szMenu6:	.asciz "<6> Save file (output.txt)\n\n"
 szMenu7:	.asciz "<7> Quit\n\n\n>  "
 
+//other strings
+szWait:		.asciz "Press enter to continue..."
+szSearch1:	.asciz "Search for: "
+test:		.asciz "first"
+str1:		.asciz "this iS the FIRst string\n"
+str2:		.asciz "and this is the SECOND\n"
+str3:		.asciz "THIS is the third!\n"
 
-str1:		.asciz "this is the first string\n"
-str2:		.asciz "and this is the second\n"
-str3:		.asciz "this is the third!\n"
 	.text
 
 _start:
@@ -56,13 +62,19 @@ _start:
 
 open_menu:
 
-	//print header, menu, and recieve user input
+	//clear screen, print header, menu, and recieve user input
+
+	ldr		x0, =szClear			//load stirng into x0
+	bl		putstring				//display waiting line
 
 	bl		print_menu				//print header info and menu
 	bl		menu_selection			//returns the user's input to x0
 
 	cmp		x0, #0					//compare x0 to 0
 	beq		view_strings			//if equal, print strings
+
+	cmp		x0, #5					//compare x0 to 5
+	beq		search					//if equal, branch to search
 
 	cmp		x0, #7					//compare x0 to 7
 	beq		exit_sequence			//if equal, exit
@@ -82,13 +94,32 @@ exit_sequence:
 
 //DRIVER FUNCTIONS
 
+return_to_menu:
+
+	stp		x29, x30, [sp, #-16]!	//push stack frame
+
+	ldr		x0, =chLF				//load address of chLF into x0
+	bl		putch					//print new line
+	ldr		x0, =szWait				//load stirng into x0
+	bl		putstring				//display waiting line
+
+	//wait for input
+    mov x0, 0						//file descriptor
+    mov x1, sp						//buffer to store character
+    mov x2, #1						//number of bytes to read
+    mov x8, #63						//63 means read
+    svc #0							//call up linus
+
+	ldp     x29, x30, [sp], #16		//pop stack frame
+
+	b		open_menu				//back to menu
+
 print_menu:
 
 /* print_menu - prints the menu of the program */
 
-    //save registers to stack
-    str     x19, [sp, #-16]!        //push x19
-    str     x30, [sp, #-16]!        //push lr
+	//save stack frame
+	stp		x29, x30, [sp, #-16]!	//push stack frame
 
 	ldr		x0, =szHeader1			//load address of szHeader1 into x0
 	bl		putstring				//print
@@ -124,8 +155,7 @@ print_menu:
 	bl		putch					//print new line
 
 	//restore registers
-    ldr     x30, [sp], #16          //pop lr
-    ldr     x19, [sp], #16          //pop x19
+	ldp     x29, x30, [sp], #16		//pop stack frame
 
 	ret		lr						//return
 
@@ -136,9 +166,9 @@ menu_selection:
 //		x0 return values: a number from 0 to 7, or -1 on invalid input
 //		(0 = <1>, 1 = <2a>, 2 = <2b>)
 */
-    //save registers to stack
-    str     x19, [sp, #-16]!        //push x19
-    str     x30, [sp, #-16]!        //push lr
+	//save registers to stack
+	str		x19, [sp, #-16]!		//push x19
+	str		x30, [sp, #-16]!		//push lr
 
 	//print menu
 	ldr		x0, =szMenu1
@@ -225,8 +255,8 @@ menu_selection_exit:
 	mov		x0, x1					//move x1 to x0
 
 	//restore registers
-    ldr     x30, [sp], #16          //pop lr
-    ldr     x19, [sp], #16          //pop x19
+	ldr		x30, [sp], #16			//pop lr
+	ldr		x19, [sp], #16			//pop x19
 
 	ret		lr						//return
 
@@ -234,8 +264,36 @@ view_strings:
 
 /* view_strings - prints all nodes */
 
+	//save stack frame
+	stp		x29, x30, [sp, #-16]!	//push stack frame
+
 	ldr		x0, =headPtr			//load headPtr into x0
 	bl		node_print				//branch to node_print
-	b		open_menu				//return to menu
+
+	//restore registers
+	ldp     x29, x30, [sp], #16		//pop stack frame
+
+	b		return_to_menu			//return to menu
+
+search:
+
+	//save stack frame
+	stp		x29, x30, [sp, #-16]!	//push stack frame
+
+	//get search string
+	ldr		x0, =szSearch1			//load search prompt into x0
+	bl		putstring				//print prompt
+	ldr		x0, =szBuffer			//load szBuffer into x0
+	mov		x1, MAX					//use MAX bytes of input
+	bl		getstring				//get the string
+
+	ldr		x0, =headPtr			//headPtr goes in x0
+	ldr		x1, =szBuffer			//szBuffer goes in x1
+	bl		node_search				//search the nodes
+
+	//restore registers
+	ldp     x29, x30, [sp], #16		//pop stack frame
+
+	b		return_to_menu
 
 .end
