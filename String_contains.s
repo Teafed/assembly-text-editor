@@ -19,7 +19,9 @@
 String_contains:
 
 	str		x30, [sp, #-16]!		//push x30 onto stack
-	stp		x0, x1, [sp, #-16]!	//push s1 and s2 onto stack
+	stp		x19, x20, [sp, #-16]!//push s1 and s2 onto stack
+	mov		x19, x0					//s1 goes in x19
+	mov		x20, x1					//s2 goes in x20
 
 //check if s2.length > s1.length
 	stp		x0, x1, [sp, #-16]!	//push s1 and s2 onto stack
@@ -47,41 +49,36 @@ String_contains:
 	//x3 = size
 	//x4 = index
 
-	stp		x0, x1, [sp, #-16]!	//push s1 and s2 onto stack
-
 contains_loop:
 
 	//for each call, the start index of s1 gets incremented by 1
-
+	stp		x0, x1, [sp, #-16]!	//push s1 and s2 onto stack
 	bl			String_startsWith_2	//check if strings start the same
-	cmp		x0, #1					//compare substrings
-	beq		match_found				//if return true, go to match_found
+	mov		x2, x0					//put answer in x2
+	ldp		x0, x1, [sp], #16		//pop x0 and x1 from stack
+	cmp		x2, #1					//compare substrings
+	beq		exit_loop				//if return true, go to match_found
 
 	cmp		x4, x3					//compare index and size
 	bge		no_match					//end of string, can't search any more
 
-	ldp		x0, x1, [sp], #16		//pop x0 and x1 from stack
 	add		x0, x0, #1				//if not add 1 to the full string address
-	stp		x0, x1, [sp, #-16]!	//push x1 and x2 onto stack
 
 	add		x4, x4, #1				//increment index
 	b			contains_loop			//loop again
 
-match_found:
-
-	ldp		x1, x2, [sp], #16		//pop s1 and s2 from stack
-	b			exit_loop				//exit loop
-
 no_match:
 
-	ldp		x1, x2, [sp], #16		//pop s1 and s2 from stack
-	mov		x0, #0					//return false to x0
+	mov		x2, #0					//return false to x0
 
 exit_loop:
 
-	ldp		x1, x2, [sp], #16		//pop x0 and x1 from stack
+	mov		x0, x2					//put answer into x0
+	mov		x1, x19					//put s1 into x1
+	mov		x2, x20					//put s2 into x2
+	ldp		x19, x20, [sp], #16	//pop x0 and x1 from stack
 	ldr		x30, [sp], #16			//pop x30 from stack
 
-	ret		lr						//return to sender
+	ret		lr							//return to sender
 
 .end
