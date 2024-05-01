@@ -1,6 +1,7 @@
 //subroutine node_free - this frees the memory for strings and
 // nodes; make sure headPtr address is in x0
 //x0 contains address of headPtr
+//returns nothing
 
 	.global node_free
 
