@@ -9,7 +9,8 @@
 
 node_free:
 
-	str		x30, [sp, #-16]!		//push lr
+	stp		x19, x30, [sp, #-16]!//push x19, lr
+	str		x0, [sp, #-16]!		//push x0
 	ldr		x0, [x0]					//load value of headPtr into x0
 
 node_free_loop:
@@ -33,7 +34,15 @@ node_free_loop:
 
 node_free_exit:
 
-	ldr		x30, [sp], #16			//pop lr
+	//clear anything left in headPtr
+	ldr		x0, [sp], #16			//pop headPtr
+	str		x1, [sp, #-16]!		//push x1
+	mov		x1, #0					//move 0 to x1
+	str		x1, [x0]					//headPtr now doesn't point anywhere
+	ldr		x1, [sp], #16			//pop headPtr
+	ldp		x19, x30, [sp], #16	//pop x0, lr
+
+
 	ret		lr							//return. finally
 
 .end
