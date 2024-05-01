@@ -41,11 +41,11 @@ szInput:		.asciz "Input: "							// User is prompted for new string to add to li
 
 
 //testing
-str1:			.asciz "scenario. you're at work on a slow day\n"
-str2:			.asciz "your boss mentions how he recently purchased an air fryer\n"
-str3:			.asciz "remembering a meme you saw on tumblr 2 years ago, you quip:\n"
-str4:			.asciz "\"did you make the tony stark face?\"\n"
-str5:			.asciz "he doesn't know what you're talking about. no one does. you never leave the house again\n"
+str1:			.asciz "scenario. you're at work on a slow day"
+str2:			.asciz "your boss mentions how he recently purchased an air fryer"
+str3:			.asciz "remembering a meme you saw on tumblr 2 years ago, you quip:"
+str4:			.asciz "\"did you make the tony stark face?\""
+str5:			.asciz "he doesn't know what you're talking about. no one does. you never leave the house again"
 
 	.text
 
@@ -111,6 +111,8 @@ open_menu:
 
 	cmp		x0, #7					//compare x0 to 7
 	beq		exit_sequence			//if equal, exit
+
+	b			open_menu				//try to get input again
 
 exit_sequence:
 
@@ -231,10 +233,12 @@ menu_selection:
 	mov		x1, #-1					//x1 initialized to -1
 	ldrb		w2, [x0]					//load first byte from string into w2
 
-	cmp		w2, #'1'					//compare against '1'
+	cmp		w2, #'0'					//compare against '1'
 	blt		menu_selection_exit	//exit if less than
 	cmp		w2, #'8'					//compare against '8'
 	bge		menu_selection_exit	//exit if greater than or equal to
+	cmp		w2, #'0'					//compare against 0
+	beq		m_7						//0 also exits :)
 	cmp		w2, #'1'					//compare against 1
 	beq		m_1						//assign corresponding value
 	cmp		w2, #'2'					//compare against 2
@@ -260,6 +264,7 @@ m_2:
 	beq		m_2a						//if so branch to m_2a
 	cmp		w2, #'b'					//check if second byte is 'b'
 	beq		m_2b						//if so branch to m_2b
+
 	b			menu_selection_exit
 m_2a:
 	mov		x1, #1					//<2a> -> 1
@@ -301,6 +306,7 @@ view_strings:
 	stp		x29, x30, [sp, #-16]!//push stack frame
 
 	ldr		x0, =headPtr			//load headPtr into x0
+	mov		x1, #1					//index print mode
 	bl			node_print				//branch to node_print
 
 	//restore registers
