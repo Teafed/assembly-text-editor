@@ -1,5 +1,5 @@
-//FREE NODES - this frees the memory for strings and nodes; make sure headPtr address is in x0
-//subroutine node_free
+//subroutine node_free - this frees the memory for strings and
+// nodes; make sure headPtr address is in x0
 //x0 contains address of headPtr
 
 	.global node_free
