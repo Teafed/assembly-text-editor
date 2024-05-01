@@ -1,45 +1,52 @@
 	.global _start
-			.equ NODE_SIZE,16
-			.equ BUFFER, 21
-			.equ MAX, 20
-			.equ MAX2,30
-			.equ BUFFER2,31
+			.equ NODE_SIZE,	16
+			.equ BUFFER, 		31
+			.equ MAX, 			30
+
+			// File .equs
+			.equ AT_FDCWD,		-100		// Local directory
+			.equ R,				0			// Read only (int flags)
+			.equ RW_______,   0600		// Owner has Read and write permisions
 	.data
 
-headPtr:	.quad 0					//head pointer
-tailPtr:	.quad 0					//tail pointer
-newNodePtr:	.quad 0					// Holds new node ptr
-currentPtr:	.quad 0					// Holds current ptr
-dbBuffer:	.quad 0					//to hold temp nums
-szBuffer:	.skip BUFFER			//to hold temp strings
-szBuffer2:	.skip BUFFER2			// Testing something right quick
-chLF:			.byte 0x0a				//new line
+headPtr:			.quad 0					//head pointer
+tailPtr:			.quad 0					//tail pointer
+newNodePtr:		.quad 0					// Holds new node ptr
+currentPtr:		.quad 0					// Holds current ptr
+dbBuffer:		.quad 0					//to hold temp nums
+szBuffer:		.skip BUFFER			//to hold temp strings
+fileBuffer:		.skip	512				// Buffer for file
+chLF:				.byte 0x0a				//new line
+bFD:				.byte	0					// A singular byte
 
 //header
-szHeader1:	.asciz "\n             RASM-4 TEXT EDITOR\n"
-szHeader2a:	.asciz "      Data Structure Heap Memory Consumption: "
-szHeader2b:	.asciz " bytes\n"
-szHeader3:	.asciz "      Number of Nodes: "
+szHeader1:		.asciz "\n             RASM-4 TEXT EDITOR\n"
+szHeader2a:		.asciz "      Data Structure Heap Memory Consumption: "
+szHeader2b:		.asciz " bytes\n"
+szHeader3:		.asciz "      Number of Nodes: "
 
 //menu
-szMenu1:	.asciz "<1> View all strings\n\n"
-szMenu2:	.asciz "<2> Add string\n"
-szMenu2a:	.asciz "    <a> from keyboard\n"
-szMenu2b:	.asciz "    <b> from file. Static file named input.txt\n\n"
-szMenu3:	.asciz "<3> Delete string. Given an index #, delete the entire string and deallocate memory (including the node).\n\n"
-szMenu4:	.asciz "<4> Edit string. Given an index #, replace old string with new string. allocate/deallocate as needed.\n\n"
-szMenu5:	.asciz "<5> String search. Regardless of case, return all strings that match the substring given.\n\n"
-szMenu6:	.asciz "<6> Save file (output.txt)\n\n"
-szMenu7:	.asciz "<7> Quit\n\n\n>  "
+szMenu1:			.asciz "<1> View all strings\n\n"
+szMenu2:			.asciz "<2> Add string\n"
+szMenu2a:		.asciz "    <a> from keyboard\n"
+szMenu2b:		.asciz "    <b> from file. Static file named input.txt\n\n"
+szMenu3:			.asciz "<3> Delete string. Given an index #, delete the entire string and deallocate memory (including the node).\n\n"
+szMenu4:			.asciz "<4> Edit string. Given an index #, replace old string with new string. allocate/deallocate as needed.\n\n"
+szMenu5:			.asciz "<5> String search. Regardless of case, return all strings that match the substring given.\n\n"
+szMenu6:			.asciz "<6> Save file (output.txt)\n\n"
+szMenu7:			.asciz "<7> Quit\n\n\n>  "
 
 
-str1:		.asciz "this is the first string\n"
-str2:		.asciz "and this is the second\n"
-str3:		.asciz "this is the third!\n"
+str1:				.asciz "this is the first string\n"
+str2:				.asciz "and this is the second\n"
+str3:				.asciz "this is the third!\n"
 
 
-strIn:	.asciz "Enter an index: "				// User is prompted for a string's index to delete
-strInput:.asciz "Input: "							// User is prompted for new string to add to list
+strIn:			.asciz "Enter an index: "				// User is prompted for a string's index to delete
+strInput:		.asciz "Input: "							// User is prompted for new string to add to list
+strFileName:	.asciz "Enter input file name: "		// Prompt user for file name
+szEOF:			.asciz "Reached the end of file\n"	// Tells user input file ends
+szError:			.asciz "FILE READ ERROR\n"				// Tells if error when reading
 	.text
 
 _start:
@@ -79,8 +86,8 @@ open_menu:
 	beq		add_String_Keyboard	// Branch to add_String from keyboard
 
 
-//	cmp		x0,#2						// Compare x0 to 1
-//	beq		add_String_File		//	Branch to add_String from Folder
+	cmp		x0,#2						// Compare x0 to 1
+	beq		add_String_File		//	Branch to add_String from Folder
 
 //	cmp		x0,#3						// Compare x0 to 3, if equal:
 //	beq		delete_String			// Branch to delete_string
@@ -270,13 +277,13 @@ add_String_Keyboard:
 	ldr		x0,=strInput		// Load x0 with the address
 	bl			putstring			// Print prompt string to terminal
 	// Before we call copy we get szBuffer to have the string to add
-	ldr		x0,=szBuffer2		// Load x0 with szBuffer address
-	mov		x1,MAX2				// Move x1 max amount of chars
+	ldr		x0,=szBuffer		// Load x0 with szBuffer address
+	mov		x1,MAX				// Move x1 max amount of chars
 
 	bl			getstring			// Calling get string to grab input
 
-	// Store values into memory(?)
-	ldr		x0,=szBuffer2		// Load into 0 the address of szBuffer
+	// Call string_copy to make it dynamic
+	ldr		x0,=szBuffer		// Load into 0 the address of szBuffer
 	bl			String_copy			// Branch and link to String_copy
 
 	// Parameters for node_insert
@@ -288,6 +295,55 @@ add_String_Keyboard:
 add_String_File:
 	//	Add string into linked list from an input file. Potentially input.txt or whatever the
 	// User had it as
+	ldr		x0,=strFileName	// Prompt user for file name
+	bl			putstring			// Print string to terminal
+
+
+	ldr		x0,=szBuffer		// Load x0 with szBuffer address
+	mov		x1,MAX				// Move x1 max amount of chars
+	bl			getstring			// Calling get string to grab input
+
+
+	// Get ready to call the service call 'open at' to open the file
+	// x0 - current working directory
+	// x1 - fileName
+	// x2 - int flags
+	// x3 - mode permissions
+	// x4 - nothing
+	// x8 - service call #56
+	// Returns file descriptor
+	mov		x0,#AT_FDCWD		// Local directory
+	mov		x8,#56				// Calls service call 56(open file)
+
+	ldr		x1,=szBuffer		// Load file name
+
+	// Permissions
+	mov		x2,#R					// Can only read input file
+	mov		x3,#RW_______  	// Owner has Read and write permisions
+	svc		0 						// Call linux to make the call
+
+
+	// At this point x0 contains the file descriptor
+	// If x0 < 0 then print file error and exit
+	cmp		x0,#0					// Compare to 0
+	blt		ERROR					// If 0 go to error
+
+	// Save file descriptor in memory
+	// so we can pull it out back later
+	ldr		w4,=bFD				// Load x1 with address  of bFD
+	strb		w0,[x4]				// x0=bfD
+top1:
+	ldr		x1,=fileBuffer		// Load address of file buffer
+	// do
+//	b			top1					// Continue through loop
+	b			open_menu
+
+ERROR:
+	mov		x19,x0				// Move x0 into x19
+	ldr		x0,=szError			// Load address of szError
+	bl			putstring			// Print string to terminal
+	mov		x0,x19
+
 	b			open_menu			// Return to menu
 delete_String:
 	// Given an index #, delete the entire string and de-allocate/De-allocate as needed
