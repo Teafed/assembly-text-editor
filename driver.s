@@ -48,6 +48,7 @@ szIndex:			.asciz "Enter an index: "				// User is prompted for a string's index
 szInput:			.asciz "Input: "							// User is prompted for new string to add to list
 szGetIFile:		.asciz "Enter input file name: "		// Prompt user for file name
 szGetOFile:		.asciz "Enter output file name: "	//prompt user for output file name
+szEdit:			.asciz "Enter new string: "			//prompt user for an edit
 szEOF:			.asciz "Reached the end of file\n"	// Tells user input file ends
 szError:			.asciz "FILE READ ERROR\n"				// Tells if error when reading
 szWrite1:		.asciz "Writing strings to "
@@ -64,7 +65,7 @@ str5:			.asciz "he doesn't know what you're talking about. no one does. you neve
 	.text
 
 _start:
-/*
+
 //add temp strings
 	ldr		x0, =str1
 	bl			String_copy
@@ -120,6 +121,7 @@ _start:
 	str		x0, [x1]					//store in dbNodeCounter
 
 
+/*
 	ldr		x0, =str4
 	bl			String_copy
 	ldr		x1, =tailPtr
@@ -155,6 +157,9 @@ open_menu:
 
 	cmp		x0, #3					// Compare x0 to 3, if equal:
 	beq		delete_string			// Branch to delete_string
+
+	cmp		x0, #4					// Compare x0 to 4, if equal:
+	beq		edit_string				// Branch to edit_string
 
 	cmp		x0, #5					//compare x0 to 5
 	beq		search					//if equal, branch to search
@@ -586,9 +591,31 @@ delete_string:
 
 	b			open_menu				// Return to menu
 
-edit_String:
+edit_string:
 
-	// Given an index, replace old string with new string. Allocate/De-allocate as needed
+	//get index from user
+	ldr		x0, =szIndex			// Load address of index message
+	bl			putstring				// Print string to terminal
+	ldr		x0, =szBuffer			//load address of szBuffer into x0
+	mov		x1, MAX					//give MAX bytes of space for input
+	bl			getstring				//get input
+	ldr		x0, =szBuffer			//load address of szBuffer into x0
+	bl			ascint64					//convert to int
+	str		x0, [sp, #-16]!		//push index to stack for a moment
+
+	//get new string
+	ldr		x0, =szEdit				//load address of szEdit into x0
+	bl			putstring				//print
+
+	ldr		x0, =szBuffer			//load address of szBuffer into x0
+	mov		x1, MAX					//allow MAX bytes of space
+	bl			getstring				//get input
+
+
+	ldr		x0, =headPtr			//load address of headPtr into x0
+	ldr		x1, [sp], #16			//pop index into x1
+	ldr		x2, =szBuffer			//load address of szBuffer into x0
+	bl			node_edit				//branch to node_edit
 
 	b			open_menu				// Return to menu
 
