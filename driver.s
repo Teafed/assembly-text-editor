@@ -15,6 +15,8 @@ dbBuffer:	.quad 0					//to hold temp nums
 szBuffer:	.skip BUFFER			//to hold temp strings
 chLF:			.byte 0x0a				//new line
 szClear:		.asciz "\033[2J"		//ANSI escape code for clearing the screen
+szOutFile:	.asciz "output.txt"
+//szOutFile:	.skip BUFFER
 
 //header
 szHeader1:	.asciz "\n             RASM-4 TEXT EDITOR\n"
@@ -38,7 +40,9 @@ szWait:		.asciz "Press enter to continue..."
 szSearch1:	.asciz "Search for: "
 szIndex:		.asciz "Enter an index: "				// User is prompted for a string's index to delete
 szInput:		.asciz "Input: "							// User is prompted for new string to add to list
-
+szWrite1:	.asciz "Writing strings to "
+szWrite2:	.asciz "...\n"
+szWrite3:	.asciz "Successfully wrote to "
 
 //testing
 str1:			.asciz "scenario. you're at work on a slow day"
@@ -108,6 +112,9 @@ open_menu:
 
 	cmp		x0, #5					//compare x0 to 5
 	beq		search					//if equal, branch to search
+
+	cmp		x0, #6					//compare x0 to 6
+	beq		write_file				//if equal, branch to write_file
 
 	cmp		x0, #7					//compare x0 to 7
 	beq		exit_sequence			//if equal, exit
@@ -381,5 +388,26 @@ edit_String:
 	// Given an index, replace old string with new string. Allocate/De-allocate as needed
 
 	b			open_menu				// Return to menu
+
+write_file:
+
+	//print
+	ldr		x0, =szWrite1			//load address of szWrite1 into x0
+	bl			putstring				//print
+	ldr		x0, =szOutFile			//load address of szOutFile into x0
+	bl			putstring				//print
+	ldr		x0, =szWrite2			//load address of szWrite2 into x0
+	bl			putstring				//print
+
+	//call node_write
+	ldr		x0, =headPtr			//load address of headPtr into x0
+	ldr		x1, =szOutFile			//load address of szOutFile into x0
+	bl			node_write				//write list contents to file
+
+	//print success!
+	ldr		x0, =szWrite3			//load address of szWrite3 into x0
+	bl			putstring				//print
+
+	b			return_to_menu			//return to menu
 
 .end
