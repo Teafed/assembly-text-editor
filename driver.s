@@ -357,15 +357,14 @@ add_String_Keyboard:
 	bl			putstring				// Print prompt string to terminal
 
 	// Before we call copy we get szBuffer to have the string to add
-//<<<<<<< HEAD
-	ldr		x0,=szBuffer		// Load x0 with szBuffer address
-	mov		x1,MAX				// Move x1 max amount of chars
+	ldr		x0,=szBuffer			// Load x0 with szBuffer address
+	mov		x1,MAX					// Move x1 max amount of chars
 
-	bl			getstring			// Calling get string to grab input
+	bl			getstring				// Calling get string to grab input
 
 	// Call string_copy to make it dynamic
-	ldr		x0,=szBuffer		// Load into 0 the address of szBuffer
-	bl			String_copy			// Branch and link to String_copy
+	ldr		x0,=szBuffer			// Load into 0 the address of szBuffer
+	bl			String_copy				// Branch and link to String_copy
 
 	// Parameters for node_insert
 	ldr		x1, =tailPtr			// Load tail pointer to x1
@@ -378,13 +377,13 @@ add_String_File:
 
 	//	Add string into linked list from an input file. Potentially input.txt or whatever the
 	// User had it as
-	ldr		x0,=strFileName	// Prompt user for file name
-	bl			putstring			// Print string to terminal
+	ldr		x0,=strFileName		// Prompt user for file name
+	bl			putstring				// Print string to terminal
 
 
-	ldr		x0,=szBuffer		// Load x0 with szBuffer address
-	mov		x1,MAX				// Move x1 max amount of chars
-	bl			getstring			// Calling get string to grab input
+	ldr		x0,=szBuffer			// Load x0 with szBuffer address
+	mov		x1,MAX					// Move x1 max amount of chars
+	bl			getstring				// Calling get string to grab input
 
 
 	// Get ready to call the service call 'open at' to open the file
@@ -395,42 +394,110 @@ add_String_File:
 	// x4 - nothing
 	// x8 - service call #56
 	// Returns file descriptor
-	mov		x0,#AT_FDCWD		// Local directory
-	mov		x8,#56				// Calls service call 56(open file)
+	mov		x0,#AT_FDCWD			// Local directory
+	mov		x8,#56					// Calls service call 56(open file)
 
-	ldr		x1,=szBuffer		// Load file name
+	ldr		x1,=szBuffer			// Load file name
 
 	// Permissions
-	mov		x2,#R					// Can only read input file
-	mov		x3,#RW_______  	// Owner has Read and write permisions
-	svc		0 						// Call linux to make the call
-
-
-	// At this point x0 contains the file descriptor
-	// If x0 < 0 then print file error and exit
-	cmp		x0,#0					// Compare to 0
-	blt		ERROR					// If 0 go to error
+	mov		x2,#R						// Can only read input file
+	mov		x3,#RW_______  		// Owner has Read and write permisions
+	svc		0 							// Call linux to make the call
 
 	// Save file descriptor in memory
 	// so we can pull it out back later
-	ldr		w4,=bFD				// Load x1 with address  of bFD
-	strb		w0,[x4]				// x0=bfD
+	ldr		w4,=bFD					// Load x1 with address  of bFD
+	strb		w0,[x4]					// x0=bfD
 top1:
-	ldr		x1,=fileBuffer		// Load address of file buffer
+	ldr		x1,=fileBuffer			// Load address of file buffer
 	// do
-//	b			top1					// Continue through loop
-	b			open_menu
+	// {
+	bl			getline					// Call getline
+	cmp		x0,#0						// If x0 is 0 that means the file is at end
+	beq		close_File				// If 0 branch to last
 
+//	ldr		x0,=szBuffer			// Load into 0 the address of szBuffer
+//	bl			putstring				// Branch and link to String_copy
+
+	ldr		x0,=fileBuffer			// Load file buffer address into x0
+	bl			String_copy				// Branch and link to string copy
+	/****** Insert string to linked list ******/
+	// Parameters for node_insert
+	ldr		x1, =tailPtr			// Load tail pointer to x1
+	ldr		x2, =headPtr			// Load head pointer to x2
+	bl			node_insert				// Branch and link to node insert
+	// Save file descriptor in memory
+	// so we can pull it out back later
+	ldr		w0,=bFD					// Load x1 with address  of bFD
+	ldrb		w0,[x0]					// x0=bfD
+
+	b			top1						// Continue through loop
+
+close_File:
+	ldr		x0,=bFD					// Load 57 to close
+	ldrb		w0,[x0]					// Load a byte
+
+	mov		x8,#57					// Mov 57 into x8
+	svc		0							// Call to close
+	b			open_menu				// File close
+
+
+getChar:
+	str		LR,[SP,#-16]!			// Push link register
+	mov		x2,#1						// Move into x2, #1(number of bytes to read) (Attempt to read 1 byte)
+
+	// ssize_t read(int fd, void *buf, size_t count);
+	//				x0 read(x0,x1,x2_
+	mov		x8,#63					// READ
+	svc		0							// Does LR change
+	ldr		LR,[SP],#16				// pop
+	RET									// Return to main
+
+getline:
+	str		LR,[SP,#-16]!			// Push LR to get back to main code
+
+top:
+	bl			getChar					// Try to read in a char
+	cmp		w0,#0x0					// Load in a line feed
+	beq		EOF						// Branch to end of file
+
+	ldrb		w2,[x1]					// Load a byt into w2
+	cmp		w2,#0xa					// If we reach line feed
+	beq		EOLINE					// Branch to eoline
+
+	cmp		w0,#0x0					// Compare to null
+	blt		ERROR						// Branch and link to file error
+	// Move fileBuffer pointer by 1
+	add		x1,x1,#1					// We are going to make fileBuffer into a c-string
+	ldr		x0,=bFD					// Load address of bFD into x0
+	ldrb		w0,[x0]					// Load byte into w0
+	b			top						// Continue through loop
+// End of line
+EOLINE:
+	mov		w2,#0						// by store null at the end of fileBuffer (i.e. "Cat in the hat.\0"
+	strb		w2,[x1]					// Store a byte from x1 into w2
+	b			skip						// Unconditional branch to skip
+// End of file
+EOF:
+	mov		x19,x0					// Move into x0 into x19
+	ldr		x0,=szEOF				// Load szEOF address into x0
+	bl			putstring				// Print szEOF
+	mov		x0,x19					// Move x19
+	b			skip						// Continue through loop
+// File open error
 ERROR:
-	mov		x19,x0				// Move x0 into x19
-	ldr		x0,=szError			// Load address of szError
-	bl			putstring			// Print string to terminal
-	mov		x0,x19
+	mov		x19,x0					// Move x0 into x19
+	ldr		x0,=szError				// Load address of szError
+	bl			putstring				// Print string to terminal
+	mov		x0,x19					// Move x19 into x0
 
 	b			open_menu				// Return to menu
 
-delete_String:
+skip:
+	ldr		LR,[SP],#16				// POP
+	RET									// Return to main
 
+delete_String:
 	// Given an index #, delete the entire string and de-allocate/De-allocate as needed
 
 	// Prompt the user for a string index
