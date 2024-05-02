@@ -923,11 +923,7 @@ PAT PAT they call him Pat.
 PAT SAT Pat sat on hat.
 PAT CAT Pat sat on cat.
 PAT BAT Pat sat on bat.
-<<<<<<< HEAD
-NO PAT NO Donâ??t sit on that.
-=======
 NO PAT NO Don't sit on that.
->>>>>>> 0b7630159742f7433fc04174f12a6f036c688144
 SAD DAD BAD HAD Dad is sad.
 Very, very sad.
 He had a bad day. What a day Dad had!
@@ -1169,8 +1165,4 @@ So we will sleep with our pet Zeep.
 Today is gone. Today was fun.
 Tomorrow is another one.
 Every day, from here to there.
-<<<<<<< HEAD
 funny things are everywhere.
-=======
-funny things are everywhere.
->>>>>>> 0b7630159742f7433fc04174f12a6f036c688144
