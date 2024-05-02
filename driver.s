@@ -1,5 +1,4 @@
 	.global _start
-<<<<<<< HEAD
 			.equ NODE_SIZE,	16
 			.equ BUFFER, 		31
 			.equ MAX, 			30
@@ -10,22 +9,8 @@
 			.equ RW_______,   0600		// Owner has Read and write permisions
 	.data
 
-headPtr:			.quad 0					//head pointer
-tailPtr:			.quad 0					//tail pointer
-newNodePtr:		.quad 0					// Holds new node ptr
-currentPtr:		.quad 0					// Holds current ptr
-dbBuffer:		.quad 0					//to hold temp nums
-szBuffer:		.skip BUFFER			//to hold temp strings
 fileBuffer:		.skip	512				// Buffer for file
-chLF:				.byte 0x0a				//new line
 bFD:				.byte	0					// A singular byte
-=======
-
-				.equ NODE_SIZE,16
-				.equ BUFFER, 31
-				.equ MAX, 30
-
-	.data
 
 //pointers, buffers, etc
 headPtr:		.quad 0					//head pointer
@@ -36,7 +21,6 @@ dbBuffer:	.quad 0					//to hold temp nums
 szBuffer:	.skip BUFFER			//to hold temp strings
 chLF:			.byte 0x0a				//new line
 szClear:		.asciz "\033[2J"		//ANSI escape code for clearing the screen
->>>>>>> 0b7630159742f7433fc04174f12a6f036c688144
 
 //header
 szHeader1:		.asciz "\n             RASM-4 TEXT EDITOR\n"
@@ -45,7 +29,6 @@ szHeader2b:		.asciz " bytes\n"
 szHeader3:		.asciz "      Number of Nodes: "
 
 //menu
-<<<<<<< HEAD
 szMenu1:			.asciz "<1> View all strings\n\n"
 szMenu2:			.asciz "<2> Add string\n"
 szMenu2a:		.asciz "    <a> from keyboard\n"
@@ -57,26 +40,11 @@ szMenu6:			.asciz "<6> Save file (output.txt)\n\n"
 szMenu7:			.asciz "<7> Quit\n\n\n>  "
 
 
-str1:				.asciz "this is the first string\n"
-str2:				.asciz "and this is the second\n"
-str3:				.asciz "this is the third!\n"
-
-
 strIn:			.asciz "Enter an index: "				// User is prompted for a string's index to delete
 strInput:		.asciz "Input: "							// User is prompted for new string to add to list
 strFileName:	.asciz "Enter input file name: "		// Prompt user for file name
 szEOF:			.asciz "Reached the end of file\n"	// Tells user input file ends
 szError:			.asciz "FILE READ ERROR\n"				// Tells if error when reading
-=======
-szMenu1:		.asciz "<1> View all strings\n\n"
-szMenu2:		.asciz "<2> Add string\n"
-szMenu2a:	.asciz "    <a> from keyboard\n"
-szMenu2b:	.asciz "    <b> from file. Static file named input.txt\n\n"
-szMenu3:		.asciz "<3> Delete string. Given an index #, delete the entire string and deallocate memory (including the node).\n\n"
-szMenu4:		.asciz "<4> Edit string. Given an index #, replace old string with new string. allocate/deallocate as needed.\n\n"
-szMenu5:		.asciz "<5> String search. Regardless of case, return all strings that match the substring given.\n\n"
-szMenu6:		.asciz "<6> Save file (output.txt)\n\n"
-szMenu7:		.asciz "<7> Quit\n\n\n>  "
 
 //other strings
 szWait:		.asciz "Press enter to continue..."
@@ -92,7 +60,6 @@ str3:			.asciz "remembering a meme you saw on tumblr 2 years ago, you quip:"
 str4:			.asciz "\"did you make the tony stark face?\""
 str5:			.asciz "he doesn't know what you're talking about. no one does. you never leave the house again"
 
->>>>>>> 0b7630159742f7433fc04174f12a6f036c688144
 	.text
 
 _start:
@@ -146,14 +113,8 @@ open_menu:
 	cmp		x0,#1						// Compare x0 to 1
 	beq		add_String_Keyboard	// Branch to add_String from keyboard
 
-<<<<<<< HEAD
-
 	cmp		x0,#2						// Compare x0 to 1
 	beq		add_String_File		//	Branch to add_String from Folder
-=======
-//	cmp		x0,#2						// Compare x0 to 1
-//	beq		add_String_File		//	Branch to add_String from Folder
->>>>>>> 0b7630159742f7433fc04174f12a6f036c688144
 
 //	cmp		x0,#3						// Compare x0 to 3, if equal:
 //	beq		delete_String			// Branch to delete_string
@@ -396,7 +357,7 @@ add_String_Keyboard:
 	bl			putstring				// Print prompt string to terminal
 
 	// Before we call copy we get szBuffer to have the string to add
-<<<<<<< HEAD
+//<<<<<<< HEAD
 	ldr		x0,=szBuffer		// Load x0 with szBuffer address
 	mov		x1,MAX				// Move x1 max amount of chars
 
@@ -405,15 +366,6 @@ add_String_Keyboard:
 	// Call string_copy to make it dynamic
 	ldr		x0,=szBuffer		// Load into 0 the address of szBuffer
 	bl			String_copy			// Branch and link to String_copy
-=======
-	ldr		x0, =szBuffer			// Load x0 with szBuffer address
-	mov		x1, MAX					// Move x1 max amount of chars
-	bl			getstring				// Calling get string to grab input
-
-	// Store copies into memory
-	ldr		x0, =szBuffer			// Load into 0 the address of szBuffer
-	bl			String_copy				// Branch and link to String_copy
->>>>>>> 0b7630159742f7433fc04174f12a6f036c688144
 
 	// Parameters for node_insert
 	ldr		x1, =tailPtr			// Load tail pointer to x1
@@ -426,7 +378,6 @@ add_String_File:
 
 	//	Add string into linked list from an input file. Potentially input.txt or whatever the
 	// User had it as
-<<<<<<< HEAD
 	ldr		x0,=strFileName	// Prompt user for file name
 	bl			putstring			// Print string to terminal
 
@@ -476,12 +427,8 @@ ERROR:
 	bl			putstring			// Print string to terminal
 	mov		x0,x19
 
-	b			open_menu			// Return to menu
-=======
-
 	b			open_menu				// Return to menu
 
->>>>>>> 0b7630159742f7433fc04174f12a6f036c688144
 delete_String:
 
 	// Given an index #, delete the entire string and de-allocate/De-allocate as needed
