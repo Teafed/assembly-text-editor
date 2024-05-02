@@ -53,7 +53,7 @@ node_edit_lookup:
 node_edit_found:
 
 	//get address to change
-	ldr		x0, [x27]				//load malloc'd address into x0
+	str		x0, [sp, #-16]!		//push current node
 
 	//get original length
 	str		x0, [sp, #-16]!		//push x0
@@ -88,7 +88,7 @@ node_edit_found:
 	//make a copy and put into new address
 	stp		x0, x1, [sp, #-16]!	//push new address, address to free
 	str		x2, [sp, #-16]!		//push length difference as well
-	mov		x0, x2					//put new length in x0
+	mov		x0, x29					//put szBuffer in x0
 	bl			String_copy				//copy szBuffer
 	ldr		x3, [sp], #16			//pop length difference
 	ldp		x1, x2, [sp], #16		//bring back
@@ -98,19 +98,36 @@ node_edit_found:
 	//x2 has address to free
 	//x3 has length difference
 
-	str		x0, [x1]					//store copy address into key address
-	str		x1, [x27]				//store key address into node address
+	//push address to free
+	ldr		x4, [x27]				//get old address from x27
+	stp		x4, x3, [sp, #-16]!	//push address to free and diff
 
-	//free old address
-	//x0 has new address
-	//x1 has address to free
-	//x2 has new length
+	str		x0, [x1]					//store copy address into key address
+	str		x1, [x27]
+
+	ldp		x1, x2, [sp], #16		//pop address to free, diff
+
+	ldr		x5, [sp], #16			//pop head
+	str		x27, [x5]
+
+
+	str		x2, [sp, #-16]!		//push length difference
+	mov		x0, x1					//move dead address to x0 to free it
+	bl			free						//hooray
+	ldr		x2, [sp], #16			//pop length difference
 
 node_edit_exit:
+
+	mov		x0, x2					//length difference from x0
 
 	ldp		x27, x28, [sp], #16	//pop x27 and x28 from stack
 	ldp		x29, x30, [sp], #16	//pop x29, lr from stack
 
 	ret		lr
+
+node_edit_last:
+
+	b			node_edit_exit
+
 
 .end
