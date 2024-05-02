@@ -1,28 +1,23 @@
 	.global _start
+
+			// File .equs
 			.equ NODE_SIZE,	16
 			.equ BUFFER, 		31
 			.equ MAX, 			30
 
-			// File .equs
-			.equ AT_FDCWD,		-100		// Local directory
-			.equ R,				0			// Read only (int flags)
-			.equ RW_______,   0600		// Owner has Read and write permisions
 	.data
 
-fileBuffer:		.skip	512				// Buffer for file
-bFD:				.byte	0					// A singular byte
-
 //pointers, buffers, etc
-headPtr:		.quad 0					//head pointer
-tailPtr:		.quad 0					//tail pointer
-newNodePtr:	.quad 0					// Holds new node ptr
-currentPtr:	.quad 0					// Holds current ptr
-dbBuffer:	.quad 0					//to hold temp nums
-szBuffer:	.skip BUFFER			//to hold temp strings
-chLF:			.byte 0x0a				//new line
-szClear:		.asciz "\033[2J"		//ANSI escape code for clearing the screen
-szOutFile:	.asciz "output.txt"
-//szOutFile:	.skip BUFFER
+headPtr:			.quad 0					//head pointer
+tailPtr:			.quad 0					//tail pointer
+newNodePtr:		.quad 0					// Holds new node ptr
+currentPtr:		.quad 0					// Holds current ptr
+dbBuffer:		.quad 0					//to hold temp nums
+dbNodeCounter:	.quad 0					//holds amount of nodes
+dbHeapSize:		.quad 0					//holds total size of heap
+szBuffer:		.skip BUFFER			//to hold temp strings
+chLF:				.byte 0x0a				//new line
+szClear:			.asciz "\033[2J"		//ANSI escape code for clearing the screen
 
 //header
 szHeader1:		.asciz "\n             RASM-4 TEXT EDITOR\n"
@@ -31,7 +26,7 @@ szHeader2b:		.asciz " bytes\n"
 szHeader3:		.asciz "      Number of Nodes: "
 
 //menu
-szMenu1:			.asciz "<1> View all strings\n\n"
+szMenu1:			.asciz "\n<1> View all strings\n\n"
 szMenu2:			.asciz "<2> Add string\n"
 szMenu2a:		.asciz "    <a> from keyboard\n"
 szMenu2b:		.asciz "    <b> from file. Static file named input.txt\n\n"
@@ -41,26 +36,23 @@ szMenu5:			.asciz "<5> String search. Regardless of case, return all strings tha
 szMenu6:			.asciz "<6> Save file (output.txt)\n\n"
 szMenu7:			.asciz "<7> Quit\n\n\n>  "
 
-
-strIn:			.asciz "Enter an index: "				// User is prompted for a string's index to delete
-strInput:		.asciz "Input: "							// User is prompted for new string to add to list
-strFileName:	.asciz "Enter input file name: "		// Prompt user for file name
-szEOF:			.asciz "Reached the end of file\n"	// Tells user input file ends
-szError:			.asciz "FILE READ ERROR\n"				// Tells if error when reading
-
 //other strings
-szWait:		.asciz "Press enter to continue..."
-szSearch1:	.asciz "Search for: "
-szIndex:		.asciz "Enter an index: "				// User is prompted for a string's index to delete
-szInput:		.asciz "Input: "							// User is prompted for new string to add to list
-szWrite1:	.asciz "Writing strings to "
-szWrite2:	.asciz "...\n"
-szWrite3:	.asciz "Successfully wrote to "
+szWait:			.asciz "\nPress enter to continue..."
+szSearch1:		.asciz "Search for: "
+szIndex:			.asciz "Enter an index: "				// User is prompted for a string's index to delete
+szInput:			.asciz "Input: "							// User is prompted for new string to add to list
+szGetIFile:		.asciz "Enter input file name: "		// Prompt user for file name
+szGetOFile:		.asciz "Enter output file name: "	//prompt user for output file name
+//szEOF:			.asciz "Reached the end of file\n"	// Tells user input file ends
+//szError:			.asciz "FILE READ ERROR\n"				// Tells if error when reading
+szWrite1:		.asciz "Writing strings to "
+szWrite2:		.asciz "...\n"
+szWrite3:		.asciz "Successfully wrote to "
 
 //testing
-str1:			.asciz "scenario. you're at work on a slow day"
-str2:			.asciz "your boss mentions how he recently purchased an air fryer"
-str3:			.asciz "remembering a meme you saw on tumblr 2 years ago, you quip:"
+str1:			.asciz "sce"
+str2:			.asciz "y"
+str3:			.asciz "r"
 str4:			.asciz "\"did you make the tony stark face?\""
 str5:			.asciz "he doesn't know what you're talking about. no one does. you never leave the house again"
 
@@ -75,17 +67,55 @@ _start:
 	ldr		x2, =headPtr
 	bl			node_insert
 
+	//update heap size and node counter
+	ldr		x2, =dbHeapSize		//load address of dbHeapSize into x1
+	ldr		x1, [x2]					//load value of dbHeapSize into x1
+	add		x0, x0, x1				//add to dbHeapSize
+	str		x0, [x2]					//store in dbHeapSize
+
+	ldr		x1, =dbNodeCounter	//load address of dbNodeCounter into x0
+	ldr		x0, [x1]					//load value of dbNodeCounter into x1
+	add		x0, x0, #1				//increment by 1
+	str		x0, [x1]					//store in dbNodeCounter
+
 	ldr		x0, =str2
 	bl			String_copy
 	ldr		x1, =tailPtr
 	ldr		x2, =headPtr
 	bl			node_insert
 
+	//update heap size and node counter
+	ldr		x2, =dbHeapSize		//load address of dbHeapSize into x1
+	ldr		x1, [x2]					//load value of dbHeapSize into x1
+	add		x0, x0, x1				//add to dbHeapSize
+	str		x0, [x2]					//store in dbHeapSize
+
+	ldr		x1, =dbNodeCounter	//load address of dbNodeCounter into x0
+	ldr		x0, [x1]					//load value of dbNodeCounter into x1
+	add		x0, x0, #1				//increment by 1
+	str		x0, [x1]					//store in dbNodeCounter
+
+
+
 	ldr		x0, =str3
 	bl			String_copy
 	ldr		x1, =tailPtr
 	ldr		x2, =headPtr
 	bl			node_insert
+
+	//update heap size and node counter
+	ldr		x2, =dbHeapSize		//load address of dbHeapSize into x1
+	ldr		x1, [x2]					//load value of dbHeapSize into x1
+	add		x0, x0, x1				//add to dbHeapSize
+	str		x0, [x2]					//store in dbHeapSize
+
+	ldr		x1, =dbNodeCounter	//load address of dbNodeCounter into x0
+	ldr		x0, [x1]					//load value of dbNodeCounter into x1
+	add		x0, x0, #1				//increment by 1
+	str		x0, [x1]					//store in dbNodeCounter
+
+/*
+
 
 	ldr		x0, =str4
 	bl			String_copy
@@ -98,7 +128,7 @@ _start:
 	ldr		x1, =tailPtr
 	ldr		x2, =headPtr
 	bl			node_insert
-
+*/
 open_menu:
 
 	//clear screen, print header, menu, and recieve user input
@@ -114,14 +144,14 @@ open_menu:
 
 	// If x0 equals 1, then go to addSK
 	// If not contnue through the loop
-	cmp		x0,#1						// Compare x0 to 1
+	cmp		x0, #1					// Compare x0 to 1
 	beq		add_String_Keyboard	// Branch to add_String from keyboard
 
-	cmp		x0,#2						// Compare x0 to 1
+	cmp		x0, #2					// Compare x0 to 1
 	beq		add_String_File		//	Branch to add_String from Folder
 
-//	cmp		x0,#3						// Compare x0 to 3, if equal:
-//	beq		delete_String			// Branch to delete_string
+	cmp		x0, #3					// Compare x0 to 3, if equal:
+	beq		delete_string			// Branch to delete_string
 
 	cmp		x0, #5					//compare x0 to 5
 	beq		search					//if equal, branch to search
@@ -181,11 +211,9 @@ print_menu:
 	ldr		x0, =szHeader2a		//load address of szHeader2b into x0
 	bl			putstring				//print
 
-	//TODO: get memory consumption into x1 as int
-	mov		x1, #0
-
-	//convert mem consumption to ascii
-	mov		x0, x1					//move mem consumption to x0
+	//print memory consumption
+	ldr		x0, =dbHeapSize		//load address of dbHeapSize into x0
+	ldr		x0, [x0]					//load value of dbHeapSize into x0
 	ldr		x1, =szBuffer			//put string address in x1
 	bl			int64asc					//convert to string
 	ldr		x0, =szBuffer			//load address of szBuffer into x0
@@ -196,11 +224,9 @@ print_menu:
 	ldr		x0, =szHeader3			//load address of szHeader3 into x0
 	bl			putstring				//print
 
-	//TODO: get number of nodes into x2 as int
-	mov		x2, #0
-
-	//convert node count to ascii
-	mov		x0, x2					//move node count to x0
+	//print number of nodes
+	ldr		x0, =dbNodeCounter	//load address of dbNodeCounter into x0
+	ldr		x0, [x0]					//load value of dbNodeCounter into x0
 	ldr		x1, =szBuffer			//put string address in x1
 	bl			int64asc					//convert to string
 	ldr		x0, =szBuffer			//load address of szBuffer into x0
@@ -364,20 +390,30 @@ add_String_Keyboard:
 	bl			putstring				// Print prompt string to terminal
 
 	// Before we call copy we get szBuffer to have the string to add
-//<<<<<<< HEAD
-	ldr		x0,=szBuffer		// Load x0 with szBuffer address
-	mov		x1,MAX				// Move x1 max amount of chars
+	ldr		x0,=szBuffer			// Load x0 with szBuffer address
+	mov		x1,MAX					// Move x1 max amount of chars
 
-	bl			getstring			// Calling get string to grab input
+	bl			getstring				// Calling get string to grab input
 
 	// Call string_copy to make it dynamic
-	ldr		x0,=szBuffer		// Load into 0 the address of szBuffer
-	bl			String_copy			// Branch and link to String_copy
+	ldr		x0,=szBuffer			// Load into 0 the address of szBuffer
+	bl			String_copy				// Branch and link to String_copy
 
 	// Parameters for node_insert
 	ldr		x1, =tailPtr			// Load tail pointer to x1
 	ldr		x2, =headPtr			// Load head pointer to x2
 	bl			node_insert				// Branch and link to node insert
+
+	//update heap size and node counter
+	ldr		x2, =dbHeapSize		//load address of dbHeapSize into x1
+	ldr		x1, [x2]					//load value of dbHeapSize into x1
+	add		x0, x0, x1				//add to dbHeapSize
+	str		x0, [x2]					//store in dbHeapSize
+
+	ldr		x1, =dbNodeCounter	//load address of dbNodeCounter into x0
+	ldr		x0, [x1]					//load value of dbNodeCounter into x1
+	add		x0, x0, #1				//increment by 1
+	str		x0, [x1]					//store in dbNodeCounter
 
 	b			open_menu				// Return to menu
 
@@ -385,15 +421,15 @@ add_String_File:
 
 	//	Add string into linked list from an input file. Potentially input.txt or whatever the
 	// User had it as
-	ldr		x0,=strFileName	// Prompt user for file name
+	ldr		x0, =szGetIFile	// Prompt user for file name
 	bl			putstring			// Print string to terminal
 
-
-	ldr		x0,=szBuffer		// Load x0 with szBuffer address
-	mov		x1,MAX				// Move x1 max amount of chars
+	ldr		x0, =szBuffer		// Load x0 with szBuffer address
+	mov		x1, MAX				// Move x1 max amount of chars
 	bl			getstring			// Calling get string to grab input
 
-
+	bl			node_read			//branch to read contents from file
+/*
 	// Get ready to call the service call 'open at' to open the file
 	// x0 - current working directory
 	// x1 - fileName
@@ -434,15 +470,39 @@ ERROR:
 	bl			putstring			// Print string to terminal
 	mov		x0,x19
 
-	b			open_menu				// Return to menu
+	b			open_menu			// Return to menu
+*/
 
-delete_String:
+delete_string:
 
 	// Given an index #, delete the entire string and de-allocate/De-allocate as needed
 
-	// Prompt the user for a string index
+	//get index from user
 	ldr		x0, =szIndex			// Load address of index message
 	bl			putstring				// Print string to terminal
+	ldr		x0, =szBuffer			//load address of szBuffer into x0
+	mov		x1, MAX					//give MAX bytes of space for input
+	bl			getstring				//get input
+	ldr		x0, =szBuffer			//load address of szBuffer into x0
+	bl			ascint64					//convert to int
+
+	//call node_delete
+	mov		x1, x0					//get into x1
+	ldr		x0, =headPtr			//load address of headPtr into x0
+	bl			node_delete				//delete node
+
+	//update heap size and node counter
+	ldr		x2, =dbHeapSize		//load address of dbHeapSize into x1
+	ldr		x1, [x2]					//load value of dbHeapSize into x1
+	sub		x0, x1, x0				//subtract from dbHeapSize
+	str		x0, [x2]					//store in dbHeapSize
+
+	ldr		x1, =dbNodeCounter	//load address of dbNodeCounter into x0
+	ldr		x0, [x1]					//load value of dbNodeCounter into x1
+	sub		x0, x0, #1				//decrement by 1
+	str		x0, [x1]					//store in dbNodeCounter
+
+
 
 	b			open_menu				// Return to menu
 
@@ -454,21 +514,31 @@ edit_String:
 
 write_file:
 
+	//get file name to write
+	ldr		x0, =szGetOFile		//load address of szGetOFile into x0
+	bl			putstring				//print
+
+	ldr		x0, =szBuffer			//load address of szBuffer into x0
+	mov		x1, MAX					//allow MAX bytes of space
+	bl			getstring				//get input
+
 	//print
 	ldr		x0, =szWrite1			//load address of szWrite1 into x0
 	bl			putstring				//print
-	ldr		x0, =szOutFile			//load address of szOutFile into x0
+	ldr		x0, =szBuffer			//load address of szBuffer into x0
 	bl			putstring				//print
 	ldr		x0, =szWrite2			//load address of szWrite2 into x0
 	bl			putstring				//print
 
 	//call node_write
 	ldr		x0, =headPtr			//load address of headPtr into x0
-	ldr		x1, =szOutFile			//load address of szOutFile into x0
+	ldr		x1, =szBuffer			//load address of szBuffer into x0
 	bl			node_write				//write list contents to file
 
 	//print success!
 	ldr		x0, =szWrite3			//load address of szWrite3 into x0
+	bl			putstring				//print
+	ldr		x0, =szBuffer			//load address of szBuffer into x0
 	bl			putstring				//print
 
 	b			return_to_menu			//return to menu
