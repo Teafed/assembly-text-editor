@@ -102,13 +102,13 @@ node_edit_found:
 	ldr		x4, [x27]				//get old address from x27
 	stp		x4, x3, [sp, #-16]!	//push address to free and diff
 
-	str		x0, [x1]					//store copy address into key address
-	str		x1, [x27]
+	str		x0, [x27]					//store copy address into key address
+//	str		x1, [x27]
 
 	ldp		x1, x2, [sp], #16		//pop address to free, diff
 
 	ldr		x5, [sp], #16			//pop head
-	str		x27, [x5]
+//?str		x27, [x5]
 
 
 	str		x2, [sp, #-16]!		//push length difference
