@@ -55,85 +55,12 @@ szWrite1:		.asciz "Writing strings to "
 szWrite2:		.asciz "...\n"
 szWrite3:		.asciz "Successfully wrote to "
 
-//testing
-str1:			.asciz "sce"
-str2:			.asciz "y"
-str3:			.asciz "r"
-str4:			.asciz "\"did you make the tony stark face?\""
-str5:			.asciz "he doesn't know what you're talking about. no one does. you never leave the house again"
-
 	.text
 
 _start:
 
-//add temp strings
-	ldr		x0, =str1
-	bl			String_copy
-	ldr		x1, =tailPtr
-	ldr		x2, =headPtr
-	bl			node_insert
+	//testing space
 
-	//update heap size and node counter
-	ldr		x2, =dbHeapSize		//load address of dbHeapSize into x1
-	ldr		x1, [x2]					//load value of dbHeapSize into x1
-	add		x0, x0, x1				//add to dbHeapSize
-	str		x0, [x2]					//store in dbHeapSize
-
-	ldr		x1, =dbNodeCounter	//load address of dbNodeCounter into x0
-	ldr		x0, [x1]					//load value of dbNodeCounter into x1
-	add		x0, x0, #1				//increment by 1
-	str		x0, [x1]					//store in dbNodeCounter
-
-	ldr		x0, =str2
-	bl			String_copy
-	ldr		x1, =tailPtr
-	ldr		x2, =headPtr
-	bl			node_insert
-
-	//update heap size and node counter
-	ldr		x2, =dbHeapSize		//load address of dbHeapSize into x1
-	ldr		x1, [x2]					//load value of dbHeapSize into x1
-	add		x0, x0, x1				//add to dbHeapSize
-	str		x0, [x2]					//store in dbHeapSize
-
-	ldr		x1, =dbNodeCounter	//load address of dbNodeCounter into x0
-	ldr		x0, [x1]					//load value of dbNodeCounter into x1
-	add		x0, x0, #1				//increment by 1
-	str		x0, [x1]					//store in dbNodeCounter
-
-
-
-	ldr		x0, =str3
-	bl			String_copy
-	ldr		x1, =tailPtr
-	ldr		x2, =headPtr
-	bl			node_insert
-
-	//update heap size and node counter
-	ldr		x2, =dbHeapSize		//load address of dbHeapSize into x1
-	ldr		x1, [x2]					//load value of dbHeapSize into x1
-	add		x0, x0, x1				//add to dbHeapSize
-	str		x0, [x2]					//store in dbHeapSize
-
-	ldr		x1, =dbNodeCounter	//load address of dbNodeCounter into x0
-	ldr		x0, [x1]					//load value of dbNodeCounter into x1
-	add		x0, x0, #1				//increment by 1
-	str		x0, [x1]					//store in dbNodeCounter
-
-
-/*
-	ldr		x0, =str4
-	bl			String_copy
-	ldr		x1, =tailPtr
-	ldr		x2, =headPtr
-	bl			node_insert
-
-	ldr		x0, =str5
-	bl			String_copy
-	ldr		x1, =tailPtr
-	ldr		x2, =headPtr
-	bl			node_insert
-*/
 open_menu:
 
 	//clear screen, print header, menu, and recieve user input
@@ -616,6 +543,12 @@ edit_string:
 	ldr		x1, [sp], #16			//pop index into x1
 	ldr		x2, =szBuffer			//load address of szBuffer into x0
 	bl			node_edit				//branch to node_edit
+
+	//update heap size and node counter
+	ldr		x2, =dbHeapSize		//load address of dbHeapSize into x1
+	ldr		x1, [x2]					//load value of dbHeapSize into x1
+	add		x0, x1, x0				//subtract from dbHeapSize
+	str		x0, [x2]					//store in dbHeapSize
 
 	b			open_menu				// Return to menu
 
