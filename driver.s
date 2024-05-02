@@ -473,6 +473,18 @@ add_String_File:
 	ldr		x1, =tailPtr			// Load tail pointer to x1
 	ldr		x2, =headPtr			// Load head pointer to x2
 	bl			node_insert				// Branch and link to node insert
+
+	//update heap size and node counter
+	ldr		x2, =dbHeapSize		//load address of dbHeapSize into x1
+	ldr		x1, [x2]					//load value of dbHeapSize into x1
+	add		x0, x0, x1				//add to dbHeapSize
+	str		x0, [x2]					//store in dbHeapSize
+
+	ldr		x1, =dbNodeCounter	//load address of dbNodeCounter into x0
+	ldr		x0, [x1]					//load value of dbNodeCounter into x1
+	add		x0, x0, #1				//increment by 1
+	str		x0, [x1]					//store in dbNodeCounter
+
 	// Save file descriptor in memory
 	// so we can pull it out back later
 	ldr		w0,=bFD					// Load x1 with address  of bFD
