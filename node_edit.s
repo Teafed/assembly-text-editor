@@ -52,9 +52,6 @@ node_edit_lookup:
 
 node_edit_found:
 
-	//get address to change
-	str		x0, [sp, #-16]!		//push current node
-
 	//get original length
 	str		x0, [sp, #-16]!		//push x0
 	bl			String_length			//get string length
@@ -64,57 +61,27 @@ node_edit_found:
 	//get new length
 	mov		x0, x29					//put szBuffer into x0
 	bl			String_length			//get string length
+	add		x0, x0, #1				//add 1 for null terminator
 	mov		x2, x0					//move into x2
 	ldr		x1, [sp], #16			//pop original length into x1
 	ldr		x0, [sp], #16			//pop malloc'd string address into x0
 
 	sub		x1, x2, x1				//get difference of string length
 
-	//get new malloc'd address
+	stp		x0, x1, [sp, #-16]!	//push x0, x1
+	mov		x0, x29
+	bl			String_copy
+	ldp		x1, x2, [sp], #16		//pop malloc'd string and return length
 
-	//x0 has address to free
-	//x1 has length difference
-	//x2 has new string length
-	add		x2, x2, #1				//add 1 to new length for null terminator
-	stp		x0, x1, [sp, #-16]!	//push address to free, difference
-	mov		x0, x2					//move length to x0
-	bl			malloc					//allocate memory
-	ldp		x1, x2, [sp], #16		//bring back
+	str		x2, [sp, #-16]!		//push return legnth
 
-	//x0 has new address
-	//x1 has address to free
-	//x2 has length difference
+	ldr		x3, [x27]				//old string in x3
+	str		x0, [x27]				//store new string
 
-	//make a copy and put into new address
-	stp		x0, x1, [sp, #-16]!	//push new address, address to free
-	str		x2, [sp, #-16]!		//push length difference as well
-	mov		x0, x29					//put szBuffer in x0
-	bl			String_copy				//copy szBuffer
-	ldr		x3, [sp], #16			//pop length difference
-	ldp		x1, x2, [sp], #16		//bring back
+	mov		x0, x3					//old string to x0
+	bl			free						//freeeeeeeeeeeeeeeeeeeeeeeeeee
 
-	//x0 has new copy address
-	//x1 has new key address
-	//x2 has address to free
-	//x3 has length difference
-
-	//push address to free
-	ldr		x4, [x27]				//get old address from x27
-	stp		x4, x3, [sp, #-16]!	//push address to free and diff
-
-	str		x0, [x27]				//store copy address into key address
-//	str		x1, [x27]
-
-	ldp		x1, x2, [sp], #16		//pop address to free, diff
-
-	ldr		x5, [sp], #16			//pop head
-//?str		x27, [x5]
-
-
-	str		x2, [sp, #-16]!		//push length difference
-	mov		x0, x1					//move dead address to x0 to free it
-	bl			free						//hooray
-	ldr		x2, [sp], #16			//pop length difference
+	ldr		x2, [sp], #16			//pop return length
 
 node_edit_exit:
 
