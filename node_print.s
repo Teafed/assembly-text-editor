@@ -48,6 +48,7 @@ node_print:
 	stp		x21, x22, [sp, #-16]!//push x21, x22
 	str		x30, [sp, #-16]!		//pop lr
 
+	mov		x19, #0
 	mov		x19, x0					//keep headPtr into x19
 	mov		x22, x2					//put index head into x22
 
