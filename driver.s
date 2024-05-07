@@ -60,6 +60,15 @@ szWrite3:		.asciz "Successfully wrote to "
 _start:
 
 	//testing space
+	ldr x1, =headPtr
+	mov x0, #0
+	strb w0, [x1]
+	ldr x1, =szBuffer
+	str x0, [x1]
+	ldr x1, =fileBuffer
+	str x0, [x1]
+	ldr x1, =tailPtr
+	str x0, [x1]
 
 open_menu:
 
