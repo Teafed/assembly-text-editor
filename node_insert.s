@@ -27,6 +27,9 @@ node_insert:
 
 	mov		x0, #16					//assign 16 bytes to be allocated
 	bl			malloc					//allocate memory
+	ldr		x1, =0
+	mov		x2, #16
+	bl			memset
 
 	ldp		x21, x22, [sp], #16	//and x21 and x22. just for a bit
 	ldr		x19, [sp], #16			//pop x19 - it now has the string address

@@ -10,6 +10,7 @@
 node_free:
 
 	stp		x19, x30, [sp, #-16]!//push x19, lr
+
 	str		x0, [sp, #-16]!		//push x0
 	ldr		x0, [x0]					//load value of headPtr into x0
 
