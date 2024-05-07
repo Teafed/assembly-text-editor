@@ -17,6 +17,7 @@ node_delete:
 	stp		x19, x20, [sp, #-16]!//push s19, x20
 	mov		x29, x0					//keep original headPtr in x10
 
+	mov		x18, x0					//put headPtr in x18
 	mov		x19, x0					//put headPtr in x19
 	mov		x20, x1					//put index in x20
 	mov		x21, #0					//start counter at 0
@@ -75,13 +76,42 @@ node_delete_0:
 	//delete head node
 	//make headPtr point to saved register value
 
-
-
 node_delete_loop:
 
-	//does head->next exist?
+	//x19 = current node
+	//x20 = index
+	//x21 = counter
+	//x28 = prev node
+	//x29 = next node
 
-	b			node_delete_exit		//branch to exit
+	cmp		x20, x21
+	beq		node_found
+
+	mov		x28, x19					//current node to prev node
+	ldr		x29, [x19, #8]			//x29 is next node (to set to current)
+	mov		x19, x29					//set to current node
+	ldr		x29, [x19, #8]			//x29 is next node
+
+	add		x21, x21, #1			//increment
+	b			node_delete_loop		//loop again
+
+node_found:
+
+	str		x29, [x28, #8]			//store next in prev
+	ldr		x0, [x19]				//load current node str address
+	str		x0, [sp, #-16]!		//push
+	bl			String_length			//get string length
+	add		x27, x0, #1				//add 1 to length
+	ldr		x0, [sp], #16			//pop
+
+	bl			free						//freeeeee
+
+	mov		x0, x19					//and also get node address in x0
+	bl			free						//freeeeeee
+
+	add		x27, x27, #16			//add node size as well
+
+	b			node_delete_exit		//get outta here
 
 node_delete_head:
 
@@ -139,3 +169,34 @@ node_delete_node:
 	ret		lr							//return
 
 .end
+
+
+/*
+node_delete_loop:
+
+
+	cmp		x21, x20
+	beq		node_found
+	ldr		x18, [x18]
+	add		x18, x18, #8
+	add		x21, x21, #1
+
+	b			node_delete_loop
+
+node_found:
+
+	ldr		x1, [x18]
+	add		x1, x1, #8
+	ldr		x2, [x1]
+	str		x2, [x18]
+	sub		x1, x1, #8
+
+	mov		x17, x1
+	ldr		x18, [x1]
+	bl			free
+
+	mov		x18, x17
+	bl			free
+
+	b			node_delete_exit		//branch to exit
+*/
